@@ -1,0 +1,28 @@
+name: kubernetes
+
+on:
+  workflow_call:
+
+jobs:
+
+  EKS:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: configurando credenciais da AWS
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+        aws-region: us-east-1
+           
+    - name: HashiCorp - Setup Terraform
+      uses: hashicorp/setup-terraform@v3.27
+      
+    - run: terraform -chdir=/env/prod init
+
+    - run: terraform -chdir=/env/prod apply -auto-approve
+    
+    - run: echo "$(terraform -chdir=/env/prod  output -raw LBHostname)"
+      id: LBHostname
